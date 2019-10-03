@@ -1,16 +1,31 @@
 exception Invalid_Input_exception;
+exception subtraction_fn_problem;
+exception check_wr_error;
 
+(* from char list *)
 fun remove_leading_zeroes [] = []
   | remove_leading_zeroes [a] = [a]
   | remove_leading_zeroes (h::T) =
         if h = #"0" then remove_leading_zeroes T
         else h::T;
-                    
+(* from int list 
+fun remove_leading_zeroes  *)
+
 fun reverse([], z) = z
   | reverse(x, z) = reverse(tl(x), hd(x)::z);
   
-  
-  
+fun printList [] = ()
+  | printList([h]) = (
+            print(Int.toString(h));
+            print("\n");
+            printList([])
+        )
+  | printList(h::T) = (
+            print(Int.toString(h));
+            print(" ");
+            printList(T)
+        );
+
 (* Takes a string and returns an int-list(pair of 4's) *)
 fun fromString str =
         let
@@ -56,7 +71,7 @@ fun toString L =
 
 
 
-(* performs a-b on 2 int-lists, returns int lists; assumes a>b *)
+(* performs a-b on 2 int-lists, returns int list; assumes a>b *)
 fun subtract(a, b) =
     let
         fun sub([], [], bo) = []
@@ -64,9 +79,11 @@ fun subtract(a, b) =
                 if h1=48 andalso bo=1 then Char.chr(57)::sub(T1, [], 1)
                 else Char.chr(h1-bo)::sub(T1, [], 0)
           | sub(h1::T1, h2::T2, bo) = 
-                if h1 >= h2 then Char.chr(48+h1-h2-bo)::sub(T1, T2, 0)
+                if h1 > h2 then Char.chr(48+h1-h2-bo)::sub(T1, T2, 0)
+                else if h1=h2 andalso bo=0 then Char.chr(48+h1-h2-bo)::sub(T1, T2, 0)
                 else Char.chr(48+h1-h2+10-bo)::sub(T1, T2, 1)
-        
+          | sub([], h2::T2, bo) = [];
+                
         val astr = (String.rev (toString a))
         val bstr = (String.rev (toString b))
         val sub_string = implode ( sub(map (Char.ord) (explode astr), map (Char.ord) (explode bstr), 0) )
@@ -78,17 +95,17 @@ fun subtract(a, b) =
 (* performs a+b on 2 int-lists, returns int lists *)
 fun addition(a, b) =
     let
-        fun add([], [], 0) = []
-          | add([], [], 1) = [#"1"]
+        fun add([], [], 1) = [#"1"]
+          | add([], [], _) = []
           | add(h1::T1, [], carry) = 
                 if h1=57 andalso carry=1 then Char.chr(48)::add(T1, [], 1)
                 else Char.chr(h1+carry)::add(T1, [], 0)
           | add([], h2::T2, carry) = 
-            if h2=57 then Char.chr(48)::add([], T2, 1)
+            if h2=57 andalso carry=1 then Char.chr(48)::add([], T2, 1)
             else Char.chr(h2+carry)::add([], T2, 0)
           | add(h1::T1, h2::T2, carry) =
                 if h1+h2+carry-96 > 9 then Char.chr(h1+h2+carry-48-10)::add(T1, T2, 1)
-                else Char.chr(h1+h2+carry-48)::add(T1, T2, 0)
+                else Char.chr(h1+h2+carry-48)::add(T1, T2, 0);
                 
         
         val astr = (String.rev (toString a))
@@ -116,6 +133,7 @@ fun greater_than(a, b) =
                 if h1 > h2 then true
                 else if h1 < h2 then false
                 else check_wr(T1, T2)
+          | check_wr(_, _) = raise check_wr_error;        
     in
         if List.length(a) > List.length(b) then true
         else if List.length(a) < List.length(b) then false
@@ -124,32 +142,47 @@ fun greater_than(a, b) =
 
 
             
-(* Takes 2 int-list; return int *)
-fun karat([h1], [h2]) = h1*h2
+(* Takes 2 int-list; return int-list *)
+fun karat([h1], [h2]) = fromString( Int.toString(h1*h2) )
   | karat(a, b) =
     let
         fun find_z1(x0, x1, y0, y1, z0, z2) =
+        (* printList(x0);printList(x1);printList(y0);printList(y1);print("\n" *)
             if greater_than(x0, x1) then
                 if greater_than(y1, y0) then
-                    z0 + z2 + ( karat( subtract(x0, x1), subtract(y1, y0) ) )
+                    addition( addition(z0 , z2) , ( karat( subtract(x0, x1), subtract(y1, y0) ) ) )
                 else
-                    z0 + z2 - ( karat( subtract(x0, x1), subtract(y0, y1) ) )
+                    subtract( addition(z0 , z2) , ( karat( subtract(x0, x1), subtract(y0, y1) ) ) )
             else
                 if greater_than(y1, y0) then
-                    z0 + z2 - ( karat( subtract(x1, x0), subtract(y1, y0) ) )
+                    subtract( addition(z0 , z2) , ( karat( subtract(x1, x0), subtract(y1, y0) ) ) )
                 else
-                    z0 + z2 + ( karat( subtract(x1, x0), subtract(y0, y1) ) )
-        val al = List.length(a)
+                    addition( addition(z0 , z2) , ( karat( subtract(x1, x0), subtract(y0, y1) ) ) );
+   
+        fun pow([], 0) = []
+         | pow([], m) = 0::pow([], m-1)
+         | pow(h::T, m) = h::pow(T, m);
+        
+        
+        val al = List.length(a) (* (printList(a);printList(b);printList(b);) *)
         val bl = List.length(b)
-        val b_new = justify_length(b, al-bl)
-        val m = Real.ceil(Real.fromInt(al)/2.0)
-        val (x1, x0) = split(a, al-m, [], [])
-        val (y1, y0) = split(b, bl-m, [], [])
-        val z0 = karat(x0, y0) (* is in integer *)
+        
+        val mx = Int.max(al, bl)
+        val a_new = justify_length(a, mx-al)
+        val b_new = justify_length(b, mx-bl)
+        val m = Real.ceil(Real.fromInt(mx)/2.0)
+        
+        val (x1, x0) = split(a_new, mx-m, [], [])
+        val (y1, y0) = split(b_new, mx-m, [], [])
+        
+        val z0 = karat(x0, y0)
         val z2 = karat(x1, y1)
         val z1 = find_z1(x0, x1, y0, y1, z0, z2)
+        
+        val term1 = pow(z2, 2*m)
+        val term2 = pow(z1, m)
     in
-        z1
+        addition( addition(term1, term2) , z0) (* printList(z0);printList(z1);printList(z2);printList(term1);printList(term2); *)
     end;    
     
 
@@ -173,12 +206,25 @@ fun factorial n =
                     then false
                 else validate_Input(T);
                     
-            fun factorial_wr "" = raise Invalid_Input_exception
-              | factorial_wr n =
+            fun factorial_pre_process "" = raise Invalid_Input_exception
+              | factorial_pre_process n =
                 if validate_Input (explode n)
                     then implode (remove_leading_zeroes (explode n))
                 else raise Invalid_Input_exception;
+                
+            fun is_zero([a]) = 
+                if a=0 then true    
+                else false
+              | is_zero(L) = false;
+              
+            fun decr new_n = subtract(new_n, [1]);
+
+            fun factorial_wr(new_n, result) = 
+                    if is_zero (new_n) then (result) (* toString *)
+                    else factorial_wr( decr new_n, karat(result, new_n) );
+                    
+            val new_n = fromString (factorial_pre_process n)
         in
-            factorial_wr n
+            factorial_wr(new_n, [1])
         end;    
         
