@@ -4,13 +4,13 @@ import math # For sqaure root
 
 
 def decrypt(key_file=None, ci_file=None, pl_file=None):
-    
+
     # Check if path to file provided
     if key_file == None :
         key_file = input().strip()
         ci_file = input().strip()
         pl_file = input().strip()
-    
+
     # Read and process Key
     key = open(key_file, 'r').read().strip()
     if len(key) == 0:
@@ -27,7 +27,7 @@ def decrypt(key_file=None, ci_file=None, pl_file=None):
 
     key_arr = np.asarray(key)
     key_mat = key_arr.reshape(n, n)
-    
+
     # Find determinant
     key_det = np.linalg.det(key_mat)
     determ = int(round(key_det))
@@ -44,7 +44,7 @@ def decrypt(key_file=None, ci_file=None, pl_file=None):
     key_inv = np.linalg.inv(key_mat)
     # Adjoint of Key
     key_adj = np.around(key_inv*key_det).astype(int, copy=False)
-    
+
     # Modulo inverse of Determinant
     def modInv(a, m):
         for num in range(1, m):
@@ -58,11 +58,11 @@ def decrypt(key_file=None, ci_file=None, pl_file=None):
     for i in range(len(key_adj)):
         for j in range(len(key_adj[i])):
             key_mod_inv[i][j] = (key_adj[i][j] * key_det_mod_inv) % 26
-    
+
     # Read and process Cipher_Text
     ci_text = open(ci_file, 'r').read().strip()
     ci_text_int = [ord(ch)-ord('a') for ch in ci_text] # Convert to ints
-    
+
     # Get back Plain_Text
     pl_text = ''
     for i in range(0, len(ci_text_int), n):
@@ -79,7 +79,8 @@ def decrypt(key_file=None, ci_file=None, pl_file=None):
 
     if x_trail > n-1:
         x_trail = n-1
-    pl_text = pl_text[:-x_trail]
+    if x_trail > 0:
+        pl_text = pl_text[:-x_trail]
 
     # Write Result to File
     open(pl_file, 'w').write(pl_text)
