@@ -59,9 +59,11 @@ def decrypt(key_file=None, ci_file=None, pl_file=None):
         for j in range(len(key_adj[i])):
             key_mod_inv[i][j] = (key_adj[i][j] * key_det_mod_inv) % 26
 
+
     # Read and process Cipher_Text
     ci_text = open(ci_file, 'r').read().strip()
     ci_text_int = [ord(ch)-ord('a') for ch in ci_text] # Convert to ints
+
 
     # Get back Plain_Text
     pl_text = ''
@@ -81,6 +83,7 @@ def decrypt(key_file=None, ci_file=None, pl_file=None):
         x_trail = n-1
     if x_trail > 0:
         pl_text = pl_text[:-x_trail]
+
 
     # Write Result to File
     open(pl_file, 'w').write(pl_text)

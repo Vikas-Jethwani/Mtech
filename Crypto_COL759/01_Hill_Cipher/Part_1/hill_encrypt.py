@@ -4,13 +4,13 @@ import math # For sqaure root
 
 
 def encrypt(key_file=None, pl_file=None, ci_file=None):
-
+    
     # Check if path to file provided
     if key_file == None :
         key_file = input().strip()
         pl_file = input().strip()
         ci_file = input().strip()
-
+    
     # Read and process Key
     key = open(key_file, 'r').read().strip()
     if len(key) == 0:
@@ -27,8 +27,8 @@ def encrypt(key_file=None, pl_file=None, ci_file=None):
 
     key_arr = np.asarray(key)
     key_mat = key_arr.reshape(n, n)
-
-
+    
+    
     # Read and process Plain_Text
     pl_text = open(pl_file, 'r').read().strip()
     pl_text_trim = ''
@@ -38,10 +38,10 @@ def encrypt(key_file=None, pl_file=None, ci_file=None):
     # Append'x' to make length a multiple of n
     if len(pl_text_trim)%n != 0:
         pl_text_trim = pl_text_trim + 'x'*( n - (len(pl_text_trim)%n) )
-
+    
     # Convert to integer vector for matrix multiplication
     pl_text_int = [ord(ch)-ord('a') for ch in pl_text_trim]
-
+    
     # Get Cipher_Text
     ci_text = ''
     for i in range(0, len(pl_text_int), n):
